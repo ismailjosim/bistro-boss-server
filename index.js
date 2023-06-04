@@ -1,8 +1,11 @@
+require('colors')
 require('dotenv').config()
 const express = require('express');
 const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+//? create
 const app = express();
 const cors = require('cors');
 const port = process.env.PORT || 5000;
@@ -45,24 +48,23 @@ const client = new MongoClient(uri, {
 // Database: Connect with Database
 const dbConnect = async () => {
   try {
-    await client.connect();
-    console.log("Database Connected Successfully");
+    client.connect();
+    console.log(" Database Connected Successfully✅ ".bgWhite);
 
   } catch (error) {
     console.log(error.name, error.message);
-
   }
 }
 dbConnect()
 
-// Database: collections
+// Database: All database collections
 const menuCollection = client.db("bistroDb").collection("menu");
 const reviewCollection = client.db("bistroDb").collection("reviews");
 const cartCollection = client.db("bistroDb").collection("carts");
 const userCollection = client.db("bistroDb").collection("users");
 const paymentCollection = client.db("bistroDb").collection("payments");
 
-// routes: Default
+// routes: Default Route
 app.get('/', (req, res) => {
   try {
     res.send('Restaurant Server Is Running 🚩')
@@ -71,6 +73,7 @@ app.get('/', (req, res) => {
   }
 })
 
+// post: JWT middleware post request.
 app.post('/jwt', (req, res) => {
   const user = req.body;
   const token = jwt.sign(user, process.env.JWT_TOKEN_SECRET, { expiresIn: '7D' })
@@ -118,7 +121,7 @@ app.get('/reviews', async (req, res) => {
 })
 
 
-// post: cart data
+// get: cart data
 app.get('/carts', verifyJWT, async (req, res) => {
   try {
     const email = req.query.email;
@@ -141,6 +144,7 @@ app.get('/carts', verifyJWT, async (req, res) => {
     console.log(error.message);
   }
 })
+// post: cart data
 app.post('/carts', async (req, res) => {
   try {
     const item = req.body;
@@ -152,6 +156,7 @@ app.post('/carts', async (req, res) => {
   }
 })
 
+// delete: cart data
 app.delete('/carts/:id', async (req, res) => {
   const id = req.params.id;
   const query = { _id: new ObjectId(id) };
@@ -160,14 +165,15 @@ app.delete('/carts/:id', async (req, res) => {
   res.send(result)
 })
 
-// section: All users routes
-// get: single User
+
+// Get All user Information from database
 app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
   const query = {};
   const result = await userCollection.find(query).toArray();
   res.send(result)
 })
-// Add: a new User
+
+// Add a new User => Database
 app.post('/users', async (req, res) => {
   const user = req.body;
   const query = { email: user.email };
@@ -189,7 +195,7 @@ app.delete('/users/:id', async (req, res) => {
   res.send(result)
 })
 
-// Update: Admin Roll
+//? Update:Modify User Admin Role
 app.patch('/users/admin/:id', async (req, res) => {
   const id = req.params.id;
   const filter = { _id: new ObjectId(id) };
@@ -205,6 +211,8 @@ app.patch('/users/admin/:id', async (req, res) => {
 // 01: verifyJWT
 // 02: similar email
 // 03: check role admin or not.
+
+//? verify Admin role
 app.get('/users/admin/:email', verifyJWT, async (req, res) => {
   const email = req.params.email;
   if (req.decoded.email !== email) {
@@ -245,6 +253,7 @@ app.post('/create-payment-intent', verifyJWT, async (req, res) => {
   }
 })
 
+// post payment status to database.
 app.post('/payments', verifyJWT, async (req, res) => {
   try {
     const payment = req.body;
@@ -258,6 +267,7 @@ app.post('/payments', verifyJWT, async (req, res) => {
   }
 })
 
+// get: all payment Info from database
 app.get('/payments', async (req, res) => {
   try {
     const query = {};
@@ -270,5 +280,5 @@ app.get('/payments', async (req, res) => {
 })
 
 app.listen(port, () => {
-  console.log(`Bistro boss is sitting on port ${ port }`);
+  console.log(`Bistro boss is sitting on port ${ port }`.bgRed);
 })
