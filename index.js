@@ -8,14 +8,14 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 //? create
 const app = express();
 const cors = require('cors');
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 8080;
 
 // middleware
 app.use(cors());
 app.use(express.json());
 
 const verifyJWT = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  const authHeader = req?.headers?.authorization;
   if (!authHeader) {
     return res.status(401).send('Unauthorized access')
   }
@@ -32,7 +32,7 @@ const verifyJWT = (req, res, next) => {
     next();
   })
 }
-
+// gfLEy1qZ7QJBNdB9
 const uri = `mongodb+srv://${ process.env.DB_USER }:${ process.env.DB_PASS }@cluster0.vmiugbh.mongodb.net/?retryWrites=true&w=majority`;
 
 
@@ -273,6 +273,23 @@ app.get('/payments', async (req, res) => {
     const query = {};
     const payment = await paymentCollection.find(query).toArray();
     res.send(payment)
+
+  } catch (error) {
+    res.send(error)
+  }
+})
+
+app.listen(port, () => {
+  console.log(`Bistro boss is sitting on port ${ port }`.bgRed);
+})
+
+
+app.get('/admin-stats', async (req, res) => {
+  try {
+    const users = await userCollection.estimatedDocumentCount();
+    res.send({
+      users
+    })
 
   } catch (error) {
     res.send(error)
