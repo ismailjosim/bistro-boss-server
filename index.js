@@ -3,12 +3,12 @@ require('dotenv').config()
 const express = require('express');
 const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const port = process.env.PORT || 5000;
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 //? create
 const app = express();
 const cors = require('cors');
-const port = process.env.PORT || 8080;
 
 // middleware
 app.use(cors());
@@ -279,11 +279,6 @@ app.get('/payments', async (req, res) => {
   }
 })
 
-app.listen(port, () => {
-  console.log(`Bistro boss is sitting on port ${ port }`.bgRed);
-})
-
-
 app.get('/admin-stats', async (req, res) => {
   try {
     const users = await userCollection.estimatedDocumentCount();
@@ -295,6 +290,8 @@ app.get('/admin-stats', async (req, res) => {
     res.send(error)
   }
 })
+
+
 
 app.listen(port, () => {
   console.log(`Bistro boss is sitting on port ${ port }`.bgRed);
