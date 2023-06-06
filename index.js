@@ -279,11 +279,23 @@ app.get('/payments', async (req, res) => {
   }
 })
 
-app.get('/admin-stats', async (req, res) => {
+app.get('/admin-stats', verifyJWT, verifyAdmin, async (req, res) => {
   try {
-    const users = await userCollection.estimatedDocumentCount();
+    const customers = await userCollection.estimatedDocumentCount();
+    const products = await menuCollection.estimatedDocumentCount();
+    const orders = await paymentCollection.estimatedDocumentCount();
+
+    // best way to get sum of a field to use group and sum operator
+
+    const payments = await paymentCollection.find().toArray();
+    const revenue = payments.reduce((sum, current) => sum + current.price, 0)
+
+
     res.send({
-      users
+      revenue,
+      customers,
+      products,
+      orders
     })
 
   } catch (error) {
