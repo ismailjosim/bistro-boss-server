@@ -49,7 +49,7 @@ const client = new MongoClient(uri, {
 const dbConnect = async () => {
   try {
     client.connect();
-    console.log(" Database Connected Successfully✅ ".bgWhite);
+    console.log("Database Connected Successfully✅");
 
   } catch (error) {
     console.log(error.name, error.message);
@@ -193,7 +193,6 @@ app.post('/users', async (req, res) => {
 app.delete('/users/:id', async (req, res) => {
   const id = req.params.id;
   const query = { _id: new ObjectId(id) };
-
   const result = await userCollection.deleteOne(query);
   res.send(result)
 })
@@ -227,6 +226,13 @@ app.get('/users/admin/:email', verifyJWT, async (req, res) => {
   res.send(result)
 })
 
+app.get('/users/admin/:email', async (req, res) => {
+  const email = req.params.email;
+  const query = { email: email };
+  const user = await userCollection.findOne(query);
+  const result = { admin: user?.role === 'admin' };
+  res.send(result)
+})
 
 //* Payment: create payment intent
 app.post('/create-payment-intent', verifyJWT, async (req, res) => {
