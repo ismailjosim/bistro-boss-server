@@ -50,7 +50,6 @@ const dbConnect = async () => {
   try {
     client.connect();
     console.log("Database Connected Successfully✅");
-
   } catch (error) {
     console.log(error.name, error.message);
   }
@@ -64,14 +63,17 @@ const cartCollection = client.db("bistroDb").collection("carts");
 const userCollection = client.db("bistroDb").collection("users");
 const paymentCollection = client.db("bistroDb").collection("payments");
 
+
 // routes: Default Route
 app.get('/', (req, res) => {
+
   try {
     res.send('Restaurant Server Is Running 🚩')
   } catch (error) {
     console.log(error.name, error.message);
   }
 })
+
 
 // post: JWT middleware post request.
 app.post('/jwt', (req, res) => {
@@ -101,6 +103,7 @@ app.get('/menu', async (req, res) => {
 })
 
 
+//localhost:3000/menu
 
 
 app.post('/menu', verifyJWT, verifyAdmin, async (req, res) => {
@@ -122,6 +125,10 @@ app.get('/reviews', async (req, res) => {
   const result = await reviewCollection.find(query).toArray();
   res.send(result);
 })
+
+// localhost:300/reviews retun []
+// localhost:300/review/${id}  {}
+
 
 
 // get: cart data
