@@ -32,7 +32,7 @@ const verifyJWT = (req, res, next) => {
     next();
   })
 }
-// gfLEy1qZ7QJBNdB9
+
 const uri = `mongodb+srv://${ process.env.DB_USER }:${ process.env.DB_PASS }@cluster0.vmiugbh.mongodb.net/?retryWrites=true&w=majority`;
 
 
@@ -91,7 +91,6 @@ const verifyAdmin = async (req, res, next) => {
   if (user?.role !== 'admin') {
     res.status(403).send({ message: 'Forbidden Access' })
   }
-
   next()
 }
 
@@ -101,9 +100,6 @@ app.get('/menu', async (req, res) => {
   const result = await menuCollection.find(query).toArray();
   res.send(result);
 })
-
-
-//localhost:3000/menu
 
 
 app.post('/menu', verifyJWT, verifyAdmin, async (req, res) => {
@@ -138,13 +134,11 @@ app.get('/carts', verifyJWT, async (req, res) => {
     if (!email) {
       res.send([])
     }
-
     // check valid user
     const decodedEmail = req.decoded.email;
     if (email !== decodedEmail) {
       res.status(403).send({ message: 'Forbidden Access' })
     }
-
 
     const query = { userEmail: email }
     const result = await cartCollection.find(query).toArray();
@@ -154,6 +148,9 @@ app.get('/carts', verifyJWT, async (req, res) => {
     console.log(error.message);
   }
 })
+
+
+
 // post: cart data
 app.post('/carts', async (req, res) => {
   try {
@@ -164,6 +161,9 @@ app.post('/carts', async (req, res) => {
   } catch (error) {
     console.log(error.message);
   }
+})
+app.get("/test", async (req, res) => {
+  res.send("working!")
 })
 
 // delete: cart data
@@ -215,7 +215,7 @@ app.patch('/users/admin/:id', async (req, res) => {
   res.send(result);
 });
 
-// Check admin or not
+// Check isAdmin or not
 // user security layer check
 // 01: verifyJWT
 // 02: similar email
@@ -250,7 +250,7 @@ app.post('/create-payment-intent', verifyJWT, async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       currency: 'usd',
       amount: amount,
-      "payment_method_types": [
+      payment_method_types: [
         "card"
       ]
 
@@ -284,7 +284,7 @@ app.post('/payments', verifyJWT, async (req, res) => {
 })
 
 // get: all payment Info from database
-app.get('/payments', async (req, res) => {
+app.get('/payments', verifyJWT, async (req, res) => {
   try {
     const query = {};
     const payment = await paymentCollection.find(query).toArray();
