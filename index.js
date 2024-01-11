@@ -33,6 +33,7 @@ const verifyJWT = (req, res, next) => {
   })
 }
 
+
 const uri = `mongodb+srv://${ process.env.DB_USER }:${ process.env.DB_PASS }@cluster0.vmiugbh.mongodb.net/?retryWrites=true&w=majority`;
 
 
@@ -57,22 +58,24 @@ const dbConnect = async () => {
 dbConnect()
 
 // Database: All database collections
-const menuCollection = client.db("bistroDb").collection("menu");
-const reviewCollection = client.db("bistroDb").collection("reviews");
-const cartCollection = client.db("bistroDb").collection("carts");
-const userCollection = client.db("bistroDb").collection("users");
-const paymentCollection = client.db("bistroDb").collection("payments");
+const db = client.db("bistroDb");
+const menuCollection = db.collection("menu");
+const reviewCollection = db.collection("reviews");
+const cartCollection = db.collection("carts");
+const userCollection = db.collection("users");
+const paymentCollection = db.collection("payments");
 
 
 // routes: Default Route
 app.get('/', (req, res) => {
-
   try {
     res.send('Restaurant Server Is Running 🚩')
   } catch (error) {
     console.log(error.name, error.message);
   }
 })
+
+
 
 
 // post: JWT middleware post request.
@@ -96,7 +99,7 @@ const verifyAdmin = async (req, res, next) => {
 
 // Route: All menu routes
 app.get('/menu', async (req, res) => {
-  const query = {}
+  const query = req.query.tags;
   const result = await menuCollection.find(query).toArray();
   res.send(result);
 })
@@ -121,10 +124,6 @@ app.get('/reviews', async (req, res) => {
   const result = await reviewCollection.find(query).toArray();
   res.send(result);
 })
-
-// localhost:300/reviews retun []
-// localhost:300/review/${id}  {}
-
 
 
 // get: cart data
@@ -161,9 +160,6 @@ app.post('/carts', async (req, res) => {
   } catch (error) {
     console.log(error.message);
   }
-})
-app.get("/test", async (req, res) => {
-  res.send("working!")
 })
 
 // delete: cart data
@@ -204,13 +200,14 @@ app.delete('/users/:id', async (req, res) => {
   res.send(result)
 })
 
-//? Update:Modify User Admin Role
+// Update:Modify User Admin Role
 app.patch('/users/admin/:id', async (req, res) => {
   const id = req.params.id;
   const filter = { _id: new ObjectId(id) };
   const updateDoc = {
     $set: { role: "admin" }
   };
+  const options = { upsert: true }
   const result = await userCollection.updateOne(filter, updateDoc);
   res.send(result);
 });
@@ -228,6 +225,7 @@ app.get('/users/admin/:email', verifyJWT, async (req, res) => {
     res.send({ admin: false });
   }
   const query = { email: email };
+
   const user = await userCollection.findOne(query);
   const result = { admin: user?.role === 'admin' };
   res.send(result)
@@ -283,6 +281,7 @@ app.post('/payments', verifyJWT, async (req, res) => {
   }
 })
 
+
 // get: all payment Info from database
 app.get('/payments', verifyJWT, async (req, res) => {
   try {
@@ -302,10 +301,8 @@ app.get('/admin-stats', verifyJWT, verifyAdmin, async (req, res) => {
     const orders = await paymentCollection.estimatedDocumentCount();
 
     // best way to get sum of a field to use group and sum operator
-
     const payments = await paymentCollection.find().toArray();
     const revenue = payments.reduce((sum, current) => sum + current.price, 0)
-
 
     res.send({
       revenue,
