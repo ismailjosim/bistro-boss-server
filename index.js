@@ -11,7 +11,10 @@ const app = express();
 const cors = require('cors');
 
 // middleware
-app.use(cors());
+app.use(cors({
+  origin: ['https://bistro-boss-restarunt.web.app', 'http://localhost:5000'],
+  credentials: true
+}));
 app.use(express.json());
 
 const verifyJWT = (req, res, next) => {
@@ -49,7 +52,7 @@ const client = new MongoClient(uri, {
 // Database: Connect with Database
 const dbConnect = async () => {
   try {
-    client.connect();
+    // client.connect();
     console.log("Database Connected Successfully✅");
   } catch (error) {
     console.log(error.name, error.message);
@@ -145,6 +148,14 @@ app.get('/carts', verifyJWT, async (req, res) => {
 
   } catch (error) {
     console.log(error.message);
+  }
+})
+
+app.get('/carts', async (req, res) => {
+  try {
+
+  } catch (error) {
+
   }
 })
 
@@ -314,6 +325,36 @@ app.get('/admin-stats', verifyJWT, verifyAdmin, async (req, res) => {
   } catch (error) {
     res.send(error)
   }
+}
+
+
+)
+
+//* products/:single
+//* product/:id
+
+
+app.get("/my-cart/:email?sort", async (req, res) => {
+  const email = req.params.email;
+  const sortOption = req.query.sort;
+  const getData = await productsCollection.find({ email: email }).toArray();
+
+  let query = {}
+  if (req.query.sort) {
+    query = req.query.sort;
+
+
+  }
+  let result = [];
+  if (sortOption === 'Yes') {
+    result = getData.filter(yes)
+  } else if (sortOption === 'No') {
+    result = getData.filter(no)
+  } else {
+    result = getData;
+  }
+  res.send(result)
+
 })
 
 
