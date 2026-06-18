@@ -13,6 +13,7 @@ const cors = require('cors')
 // middleware
 app.use(cors())
 app.use(express.json())
+
 const verifyJWT = (req, res, next) => {
 	const authHeader = req?.headers?.authorization
 	if (!authHeader) {
@@ -32,7 +33,7 @@ const verifyJWT = (req, res, next) => {
 	})
 }
 
-const uri = process.env.DB_URL
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vmiugbh.mongodb.net/?retryWrites=true&w=majority`
 
 // Database: Client Create
 const client = new MongoClient(uri, {
@@ -75,7 +76,7 @@ app.get('/', (req, res) => {
 app.post('/jwt', (req, res) => {
 	const user = req.body
 	const token = jwt.sign(user, process.env.JWT_TOKEN_SECRET, {
-		expiresIn: '1d',
+		expiresIn: '7D',
 	})
 	res.send({ token })
 })
@@ -94,7 +95,7 @@ const verifyAdmin = async (req, res, next) => {
 
 // Route: All menu routes
 app.get('/menu', async (req, res) => {
-	const query = req.query.tags
+	const query = {}
 	const result = await menuCollection.find(query).toArray()
 	res.send(result)
 })
@@ -194,10 +195,15 @@ app.patch('/users/admin/:id', async (req, res) => {
 	const updateDoc = {
 		$set: { role: 'admin' },
 	}
-	const options = { upsert: true }
 	const result = await userCollection.updateOne(filter, updateDoc)
 	res.send(result)
 })
+
+// Check isAdmin or not
+// user security layer check
+// 01: verifyJWT
+// 02: similar email
+// 03: check role admin or not.
 
 //? verify Admin role
 app.get('/users/admin/:email', verifyJWT, async (req, res) => {
@@ -206,7 +212,6 @@ app.get('/users/admin/:email', verifyJWT, async (req, res) => {
 		res.send({ admin: false })
 	}
 	const query = { email: email }
-
 	const user = await userCollection.findOne(query)
 	const result = { admin: user?.role === 'admin' }
 	res.send(result)
@@ -273,6 +278,7 @@ app.get('/admin-stats', verifyJWT, verifyAdmin, async (req, res) => {
 		const orders = await paymentCollection.estimatedDocumentCount()
 
 		// best way to get sum of a field to use group and sum operator
+
 		const payments = await paymentCollection.find().toArray()
 		const revenue = payments.reduce((sum, current) => sum + current.price, 0)
 
